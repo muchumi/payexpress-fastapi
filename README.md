@@ -3,7 +3,7 @@
 A scalable and secure payment processing platform built with FastAPI, designed for modern fintech applications.
 FastPay provides APIs for payment processing, transaction management, user authentication, and webhook integrations.
 
-🚀 Features
+🚀 Features: -
 
 ⚡ High-performance API powered by FastAPI
 
@@ -62,6 +62,7 @@ fastpay/
 └── requirements.txt
 
 ⚙️ Installation
+```
 1️⃣ Clone the repository
 git clone https://github.com/yourusername/fastpay.git
 cd fastpay
