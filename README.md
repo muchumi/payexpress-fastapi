@@ -1,7 +1,7 @@
-# pay-express💳 – Payment Platform API
+# payexpress💳 – Payment Platform API
 
 A scalable and secure payment processing platform built with FastAPI, designed for modern fintech applications.
-FastPay provides APIs for payment processing, transaction management, user authentication, and webhook integrations.
+Payexpress provides APIs for payment processing, transaction management, user authentication, and webhook integrations.
 
 🚀 Features: -
 
@@ -40,7 +40,7 @@ Authentication: JWT (OAuth2 Password Flow)
 Containerization: Docker
 
 📂 Project Structure
-fastpay/
+payexpress/
 │
 ├── app/
 │   ├── main.py
@@ -64,8 +64,8 @@ fastpay/
 ⚙️ Installation
 ```
 1️⃣ Clone the repository
-git clone https://github.com/yourusername/fastpay.git
-cd fastpay
+git clone https://github.com/yourusername/payexpress-fastapi.git
+cd payexpress-fastapi
 
 2️⃣ Create virtual environment
 python -m venv venv
@@ -79,7 +79,7 @@ pip install -r requirements.txt
 
 Create a .env file:
 
-DATABASE_URL=postgresql://user:password@localhost:5432/fastpay
+DATABASE_URL=postgresql://user:password@localhost:5432/payexpress
 SECRET_KEY=your_secret_key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -129,7 +129,7 @@ pytest
 
 🌍 Deployment
 
-You can deploy FastPay on:
+You can deploy Payexpress on:
 
 AWS (EC2, ECS, or Lambda)
 
