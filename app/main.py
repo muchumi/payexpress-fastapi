@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
 from app.db.database import engine, Base, get_db
@@ -18,6 +19,7 @@ def root():
 # User registration route
 @app.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    # normalizing email 
     user_email=user.email.strip().lower()
     # check if the user already exists
     existent_user = db.query(User).filter(User.email == user_email).first()
@@ -32,4 +34,13 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
-
+# User login route
+@app.post("/login", status_code=status.HTTP_200_OK)
+def login_user(form_data:  OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # normalizing email
+    user_email=form_data.username.strip().lower()
+    # fetch user from database
+    user = db.query(User).filter(User.email == user_email).first()
+    if not user or not verify_password(form_data.password, user.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    return {"message": f"welcome {user.email}!"}
