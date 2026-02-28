@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
 from app.db.database import engine, Base, get_db
 from app.models.user import User
+from app.core.security import hash_password, verify_password
 
 app=FastAPI()
 
@@ -17,11 +18,14 @@ def root():
 # User registration route
 @app.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    user_email=user.email.strip().lower()
     # check if the user already exists
-    existent_user = db.query(User).filter(User.email == user.email).first()
+    existent_user = db.query(User).filter(User.email == user_email).first()
     if existent_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    new_user = User(email=user.email, password=user.password)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
+    # Hashing our password
+    hashed_password = hash_password(user.password)
+    new_user = User(email=user_email, password=hashed_password)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
