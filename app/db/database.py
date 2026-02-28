@@ -7,6 +7,10 @@ engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
+"""
+    Creating session factory.
+    SessionLocal creates a session that allows us to insert, query, update and delete data.Allows interaction with the database.
+"""
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
