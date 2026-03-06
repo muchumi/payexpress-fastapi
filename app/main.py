@@ -5,6 +5,7 @@ from app.schemas.user import UserCreate, UserResponse
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.core.security import hash_password, verify_password
+from app.auth import create_access_token
 
 app=FastAPI()
 
@@ -43,4 +44,10 @@ def login_user(form_data:  OAuth2PasswordRequestForm = Depends(), db: Session = 
     user = db.query(User).filter(User.email == user_email).first()
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    return {"message": f"welcome {user.email}!"}
+    
+    access_token = create_access_token(data={"sub": user.email})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
