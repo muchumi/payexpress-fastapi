@@ -27,7 +27,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if existent_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
     # Hashing our password
-    hashed_password = hash_password(user.password)
+    hashed_password = hash_password(user.password.strip())
     new_user = User(email=user_email, password=hashed_password)
     db.add(new_user)
     db.commit()
