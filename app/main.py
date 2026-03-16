@@ -6,6 +6,7 @@ from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.core.security import hash_password, verify_password
 from app.auth import create_access_token
+from app.dependencies import get_current_user
 
 app=FastAPI()
 
@@ -51,3 +52,7 @@ def login_user(form_data:  OAuth2PasswordRequestForm = Depends(), db: Session = 
         "token_type": "bearer"
     }
 
+# protected route
+@app.get("/me")
+def read_users(current_user: User = Depends(get_current_user)):
+    return current_user
