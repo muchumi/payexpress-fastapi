@@ -53,6 +53,8 @@ def login_user(form_data:  OAuth2PasswordRequestForm = Depends(), db: Session = 
     }
 
 # protected route
-@app.get("/me")
+@app.get("/users/me")
 def read_users(current_user: User = Depends(get_current_user)):
     return current_user
+
+
