@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.database import Base
-from app.models.user import User
 
 class Wallet(Base):
     __tablename__ = "wallets"

@@ -14,4 +14,4 @@ class UserResponse(BaseModel):
 
     class Config:
         # required to return SQLAlchemy models
-        orm_mode=True
+        from_attributes=True
