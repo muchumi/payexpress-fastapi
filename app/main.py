@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
+from app.schemas.wallet import WalletResponse
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.models.wallet import Wallet
@@ -63,3 +64,8 @@ def read_users(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+# protected route
+@app.get("/wallet", response_model=WalletResponse, status_code=status.HTTP_200_OK)
+def read_wallet(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    wallet = db.query(Wallet).filter(wallet.user_id == current_user.id).first()
+    return wallet
