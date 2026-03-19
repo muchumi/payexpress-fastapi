@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
 from app.db.database import engine, Base, get_db
 from app.models.user import User
+from app.models.wallet import Wallet
 from app.core.security import hash_password, verify_password
 from app.auth import create_access_token
 from app.dependencies import get_current_user
@@ -33,7 +34,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+    
+    # creates a wallet for the new registered user
+    wallet = Wallet(user_id=new_user.id)
+    db.add(wallet)
+    db.commit()
 
 
 # User login route
