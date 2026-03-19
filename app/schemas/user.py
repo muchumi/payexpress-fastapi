@@ -13,5 +13,5 @@ class UserResponse(BaseModel):
     email: EmailStr
 
     class Config:
-        # required to return SQLAlchemy models
+        # required to return SQLAlchemy models inform of JSON response
         from_attributes=True
