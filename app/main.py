@@ -40,6 +40,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     wallet = Wallet(user_id=new_user.id)
     db.add(wallet)
     db.commit()
+    return new_user
 
 
 # User login route
@@ -67,5 +68,5 @@ def read_users(current_user: User = Depends(get_current_user)):
 # protected route to get the wallet details of the logged in user
 @app.get("/wallet", response_model=WalletResponse, status_code=status.HTTP_200_OK)
 def read_wallet(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    wallet = db.query(Wallet).filter(wallet.user_id == current_user.id).first()
+    wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
     return wallet
