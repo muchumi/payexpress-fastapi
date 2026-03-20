@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.wallet import WalletResponse
+from app.schemas.amountRequest import AmountRequest
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.models.wallet import Wallet
@@ -36,7 +37,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     
-    # creates a wallet for the new registered user
+    # automatically creates a wallet for the new registered user
     wallet = Wallet(user_id=new_user.id)
     db.add(wallet)
     db.commit()
@@ -70,3 +71,5 @@ def read_users(current_user: User = Depends(get_current_user)):
 def read_wallet(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
     return wallet
+
+# deposit route
