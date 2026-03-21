@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.wallet import WalletResponse
 from app.schemas.amountRequest import AmountRequest
+from app.schemas.walletTransaction import WalletTransactionResponse
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.models.wallet import Wallet
@@ -73,3 +74,25 @@ def read_wallet(current_user: User = Depends(get_current_user), db: Session = De
     return wallet
 
 # deposit route
+@app.post("/wallet/deposit", response_model=WalletTransactionResponse, status_code=status.HTTP_201_CREATED)
+def deposit(request: AmountRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    wallet=db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
+    if not wallet:
+        wallet = Wallet(user_id=current_user.id, balance=0)
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
+
+    wallet.balance += request.amount    
+    db.commit()
+    db.refresh(wallet)
+    return {
+        "message": f"successfully deposited {request.amount} to your wallet",
+        "amount": request.amount,
+        "currency": request.currency,
+        "description": request.description,
+        "balance": wallet.balance
+
+    }
+    
+    
