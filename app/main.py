@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -86,7 +87,7 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
             wallet = Wallet(user_id=current_user.id, balance=0)
             db.add(wallet)
             db.flush()
-            
+
         # the wallet balance should be never be null value.If its null it will be considered as 0.
         wallet.balance = (wallet.balance or 0) + request.amount
 
@@ -103,6 +104,7 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
         db.refresh(wallet)
         db.refresh(transaction)
     except Exception as e:
+        logging.error(f"Deposit error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
                         detail="An error occurred while processing your transaction, please try again later")
