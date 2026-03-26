@@ -38,15 +38,14 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = hash_password(user.password.strip())
     new_user = User(email=user_email, password=hashed_password)
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    db.flush()  # flush to get the new user's ID before committing to database
     
     # automatically creates a wallet for the new registered user
     wallet = Wallet(user_id=new_user.id)
     db.add(wallet)
     db.commit()
+    db.refresh(new_user)
     return new_user
-
 
 # User login route
 @app.post("/auth/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
@@ -76,16 +75,20 @@ def read_wallet(current_user: User = Depends(get_current_user), db: Session = De
     return wallet
 
 # deposit route
-@app.post("/wallets/deposit", response_model=WalletTransactionResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/wallets/me/deposit", response_model=WalletTransactionResponse, status_code=status.HTTP_201_CREATED)
 def deposit(request: AmountRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if request.amount <= 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Deposit amount must be greater than zero")
     wallet=db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
-    if not wallet:
-        wallet = Wallet(user_id=current_user.id, balance=0)
-        db.add(wallet)
-        db.commit()
-        db.refresh(wallet)
+    
     try:
-        wallet.balance += request.amount
+        if not wallet:
+            wallet = Wallet(user_id=current_user.id, balance=0)
+            db.add(wallet)
+            db.flush()
+            
+        # the wallet balance should be never be null value.If its null it will be considered as 0.
+        wallet.balance = (wallet.balance or 0) + request.amount
 
         transaction = WalletTransaction(
             user_id=current_user.id,
@@ -99,10 +102,10 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
         db.commit()
         db.refresh(wallet)
         db.refresh(transaction)
-    except:
+    except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-                        detail="An error ocurred while processing your transaction, please try again later")
+                        detail="An error occurred while processing your transaction, please try again later")
 
     return WalletTransactionResponse(
         message= f"Successfully deposited {request.amount} to your wallet",
