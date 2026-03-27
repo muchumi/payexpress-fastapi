@@ -88,7 +88,7 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
             db.add(wallet)
             db.flush()
 
-        # the wallet balance should be never be null value.If its null it will be considered as 0.
+        # the wallet balance should never be a null value.If its null it will be considered as 0.
         wallet.balance = (wallet.balance or 0) + request.amount
 
         transaction = WalletTransaction(
@@ -119,4 +119,4 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
         timestamp=transaction.timestamp
     )
     
-
+    
