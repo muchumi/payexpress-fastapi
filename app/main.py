@@ -119,4 +119,47 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
         timestamp=transaction.timestamp
     )
     
-    
+
+# withdrawal route
+@app.post("/wallets/me/withdraw", response_model=WalletTransactionResponse, status_code=status.HTTP_201_CREATED)
+def withdraw(request: AmountRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    wallet = db.query(Wallet).filter(Wallet.user_id==current_user.id).first()
+    if not wallet:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="wallet resource not found")
+    current_balance = wallet.balance or 0
+    # preventing overdraft
+    if request.amount > current_balance:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds")
+    try:
+        # deducting balance
+        wallet.balance = current_balance - request.amount
+        # recording the transaction
+        transaction = WalletTransaction(
+            user_id=current_user.id,
+            wallet_id=wallet.id,
+            amount=request.amount,
+            currency=request.currency,
+            description=request.description,
+            transaction_type="withdrawal",
+            status="completed"
+        )
+        db.add(transaction)
+        db.commit()
+        db.refresh(wallet)
+        db.refresh(transaction)
+    except Exception:
+        logging.exception("Withdrawal error")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Transaction failed"
+        )
+    return WalletTransactionResponse(
+        message="Withdrawal successful",
+        amount=request.amount,
+        currency=request.currency,
+        description=request.description,
+        balance=wallet.balance,
+        transaction_type=transaction.transaction_type,
+        timestamp=transaction.timestamp
+    )
