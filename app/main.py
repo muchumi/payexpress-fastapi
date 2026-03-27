@@ -104,7 +104,7 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
         db.refresh(wallet)
         db.refresh(transaction)
     except Exception as e:
-        logging.error(f"Deposit error: {str(e)}")
+        logging.exception(f"Deposit error")
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
                         detail="An error occurred while processing your transaction, please try again later")
@@ -119,4 +119,4 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
         timestamp=transaction.timestamp
     )
     
-    
+
