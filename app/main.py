@@ -128,10 +128,10 @@ def withdraw(request: AmountRequest, current_user: User = Depends(get_current_us
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="wallet resource not found")
     current_balance = wallet.balance or 0
 
-    # preventing overdraft
     if request.amount <= 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Withdrawal amount must be greater than zero")
     
+    # preventing overdraft
     if request.amount > current_balance:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds")
     
