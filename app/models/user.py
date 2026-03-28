@@ -10,5 +10,6 @@ class User(Base):
     password=Column(String)
 
     wallet = relationship("Wallet", back_populates="user", uselist=False)
+    transactions = relationship("WalletTransaction", back_populates="user")
 
 
