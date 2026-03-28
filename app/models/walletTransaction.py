@@ -15,6 +15,6 @@ class WalletTransaction(Base):
     transaction_type = Column(String, nullable=False)  # "deposit", "withdraw", "transfer"
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    # relationships (optional)
+    # relationships to user and wallet
     user = relationship("User", back_populates="transactions")
     wallet = relationship("Wallet", back_populates="transactions")
