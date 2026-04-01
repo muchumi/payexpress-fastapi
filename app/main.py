@@ -97,7 +97,8 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
             amount=request.amount,
             currency=request.currency,
             description=request.description,
-            transaction_type="deposit"
+            transaction_type="deposit",
+            status="complete"
         )
         db.add(transaction)
         db.commit()
