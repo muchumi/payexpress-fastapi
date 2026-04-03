@@ -9,6 +9,7 @@ from app.schemas.walletResponse import WalletResponse
 from app.schemas.amountRequest import AmountRequest
 from app.schemas.walletTransactionResponse import WalletTransactionResponse
 from app.schemas.transferRequest import TransferRequest
+from app.schemas.transactionHistoryResponse import TransactionHistoryResponse
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.models.wallet import Wallet
@@ -238,3 +239,9 @@ def transfer_funds(request: TransferRequest, current_user: User = Depends(get_cu
         transaction_type=debit_transaction.transaction_type,
         timestamp=debit_transaction.timestamp
     )
+
+# Transaction history route
+@app.get("/wallets/me/transactions", response_model=list[TransactionHistoryResponse], status_code=status.HTTP_200_OK)
+def transaction_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    transactions=db.query(WalletTransaction).filter(WalletTransaction.user_id == current_user.id).order_by(WalletTransaction.timestamp.desc()).all()
+    return transactions
