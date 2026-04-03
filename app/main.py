@@ -8,6 +8,7 @@ from app.schemas.tokenResponse import TokenResponse
 from app.schemas.walletResponse import WalletResponse
 from app.schemas.amountRequest import AmountRequest
 from app.schemas.walletTransactionResponse import WalletTransactionResponse
+from app.schemas.transferRequest import TransferRequest
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.models.wallet import Wallet
@@ -170,6 +171,70 @@ def withdraw(request: AmountRequest, current_user: User = Depends(get_current_us
         timestamp=transaction.timestamp
     )
 
-
-
+# wallet transfer route
+@app.post("/wallets/me/transfer", response_model=WalletTransactionResponse, status_code=status.HTTP_201_CREATED)
+def transfer_funds(request: TransferRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Fetching sender's wallet with locking 
+    sender_wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).with_for_update().first()
+    if not sender_wallet:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sender wallet not found")
     
+    # Fetching recipient
+    recipient=db.query(User).filter(User.email==request.recipient_email).first()
+    if not recipient:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")
+
+    # Preventing self transfer
+    if recipient.id == current_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot transfer funds to yourself")
+    
+    # Fetching recipient's wallet with locking
+    recipient_wallet=db.query(Wallet).filter(Wallet.user_id==recipient.id).with_for_update().first()
+    if not recipient_wallet:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient wallet not found")
+    
+    # Checking sender balance
+    sender_balance=sender_wallet.balance or 0
+    if request.amount > sender_balance:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
+
+    try:
+        sender_wallet.balance=sender_balance - request.amount
+        recipient_wallet.balance=(recipient_wallet.balance or 0) + request.amount
+        debit_transaction = WalletTransaction(
+            user_id=current_user.id,
+            wallet_id=sender_wallet.id,
+            amount=request.amount,
+            currency=request.currency,
+            description=request.description or f"Transfer to {recipient.email}",
+            transaction_type="transfer_debit",
+            status="completed"
+        )
+
+        credit_transaction=WalletTransaction(
+            user_id=recipient.id,
+            wallet_id=recipient_wallet.id,
+            amount=request.amount,
+            currency=request.currency,
+            description=request.description or f"Transfer from {current_user.email}",
+            transaction_type="transfer_credit",
+            status="completed"
+        )
+        db.add_all([debit_transaction, credit_transaction])
+        db.commit()
+        db.refresh(sender_wallet)
+        db.refresh(debit_transaction)
+
+    except Exception:
+        logging.exception("Transfer error")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Transfer failed")
+    return WalletTransactionResponse(
+        message=f"Transferred {request.amount} {request.currency} to {recipient.email}",
+        amount=request.amount,
+        currency=request.currency,
+        description=request.description,
+        balance=sender_wallet.balance,
+        transaction_type=debit_transaction.transaction_type,
+        timestamp=debit_transaction.timestamp
+    )
