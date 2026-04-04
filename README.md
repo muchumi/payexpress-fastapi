@@ -40,6 +40,7 @@ Authentication: JWT (OAuth2 Password Flow)
 Containerization: Docker
 
 ## Project Structure
+```
 payexpress/
 │
 ├── app/
