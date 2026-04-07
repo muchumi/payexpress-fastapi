@@ -252,6 +252,19 @@ def transaction_history(
     db: Session = Depends(get_db)
     ):
     query = db.query(WalletTransaction).filter(WalletTransaction.user_id == current_user.id)
+    # Applying transaction_type filter
+    if transaction_type:
+        query = query.filter(WalletTransaction.transaction_type == transaction_type)
+
+    # Applying start_date filter
+    if start_date:
+        query = query.filter(WalletTransaction.timestamp >= datetime.combine(start_date, datetime.min.time()))
+
+    # Applying end_date filter
+    if end_date:
+        query = query.filter(WalletTransaction.timestamp <= datetime.combine(end_date, datetime.max.time()))
+        
+    # Getting total count after filtering
     total=query.count()
     transactions=query.order_by(WalletTransaction.timestamp.desc()).offset(offset).limit(limit).all()
     return {
