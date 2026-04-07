@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from fastapi import FastAPI, HTTPException, status, Depends, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -242,7 +242,15 @@ def transfer_funds(request: TransferRequest, current_user: User = Depends(get_cu
 
 # Transaction history route
 @app.get("/wallets/me/transactions", response_model=PaginatedTransactionResponse, status_code=status.HTTP_200_OK)
-def transaction_history(limit: int = Query(10, le=100), offset: int = Query(0, ge=0), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def transaction_history(
+    limit: int = Query(10, le=100), 
+    offset: int = Query(0, ge=0), 
+    transaction_type : str | None = Query(None, description="Filter by transaction type"),
+    start_date: date | None = Query(None, description="Start date for filtering transactions data(YYYY-MM-DD)"),
+    end_date : date | None = Query(None, description="End date for filtering transactions data(YYYY-MM-DD)"), 
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+    ):
     query = db.query(WalletTransaction).filter(WalletTransaction.user_id == current_user.id)
     total=query.count()
     transactions=query.order_by(WalletTransaction.timestamp.desc()).offset(offset).limit(limit).all()
