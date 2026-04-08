@@ -78,12 +78,7 @@ pip install -r requirements.txt
 
 4️⃣ Setup environment variables
 
-Create a .env file:
-
-DATABASE_URL=postgresql://user:password@localhost:5432/payexpress
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+      (Create a .env file)
 
 ▶️ Running the Application
 uvicorn app.main:app --reload
