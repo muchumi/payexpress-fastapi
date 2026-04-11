@@ -8,3 +8,7 @@ class PaginatedTransactionResponse(BaseModel):
     offset: int
     data: List[TransactionHistoryResponse]
     
+    class Config:
+        from_attributes = True 
+        
+    
