@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, Numeric, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, Numeric, ForeignKey, func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.db.database import Base
 from decimal import Decimal
 
@@ -11,3 +12,5 @@ class Wallet(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
     user = relationship("User", back_populates="wallet")
     transactions = relationship("WalletTransaction", back_populates="wallet", cascade="all, delete-orphan")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
