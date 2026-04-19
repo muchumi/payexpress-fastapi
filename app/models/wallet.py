@@ -10,4 +10,4 @@ class Wallet(Base):
     balance = Column(Numeric(12,2), default=Decimal("0.00"))
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
     user = relationship("User", back_populates="wallet")
-    transactions = relationship("WalletTransaction", back_populates="wallet")
+    transactions = relationship("WalletTransaction", back_populates="wallet", cascade="all, delete-orphan")
