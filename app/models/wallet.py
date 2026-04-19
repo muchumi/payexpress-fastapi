@@ -1,12 +1,13 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey
+from sqlalchemy import Column, Integer, Numeric, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+from decimal import Decimal
 
 class Wallet(Base):
     __tablename__ = "wallets"
 
     id = Column(Integer, primary_key=True, index=True)
-    balance = Column(Float, default=0.0)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    balance = Column(Numeric(12,2), default=Decimal("0.00"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
     user = relationship("User", back_populates="wallet")
     transactions = relationship("WalletTransaction", back_populates="wallet")
