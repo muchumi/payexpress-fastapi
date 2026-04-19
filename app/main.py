@@ -52,7 +52,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # User login route
 @app.post("/auth/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
-def login_user(form_data:  OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # normalizing email
     user_email=form_data.username.strip().lower()
     # fetch user from database
@@ -100,7 +100,7 @@ def deposit(request: AmountRequest, current_user: User = Depends(get_current_use
             currency=request.currency,
             description=request.description,
             transaction_type="deposit",
-            status="complete"
+            status="completed"
         )
         db.add(transaction)
         db.commit()

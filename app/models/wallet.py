@@ -9,5 +9,4 @@ class Wallet(Base):
     balance = Column(Float, default=0.0)
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="wallet")
-
     transactions = relationship("WalletTransaction", back_populates="wallet")
