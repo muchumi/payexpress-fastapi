@@ -267,10 +267,10 @@ def transaction_history(
     # Getting total count after filtering
     total=query.count()
     transactions=query.order_by(WalletTransaction.timestamp.desc()).offset(offset).limit(limit).all()
-    return {
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-        "data": transactions
-    }
+    return PaginatedTransactionResponse(
+        total= total,
+        limit= limit,
+        offset= offset,
+        data= transactions
+    )
 
