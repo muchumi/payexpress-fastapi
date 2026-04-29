@@ -175,31 +175,31 @@ def withdraw(request: AmountRequest, current_user: User = Depends(get_current_us
 # wallet transfer route
 @app.post("/wallets/me/transfer", response_model=WalletTransactionResponse, status_code=status.HTTP_201_CREATED)
 def transfer_funds(request: TransferRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    # Fetching sender's wallet with locking 
-    sender_wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).with_for_update().first()
-    if not sender_wallet:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sender wallet not found")
-    
-    # Fetching recipient
-    recipient=db.query(User).filter(User.email==request.recipient_email).first()
-    if not recipient:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")
-
-    # Preventing self transfer
-    if recipient.id == current_user.id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot transfer funds to yourself")
-    
-    # Fetching recipient's wallet with locking
-    recipient_wallet=db.query(Wallet).filter(Wallet.user_id==recipient.id).with_for_update().first()
-    if not recipient_wallet:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient wallet not found")
-    
-    # Checking sender balance
-    sender_balance=sender_wallet.balance or 0
-    if request.amount > sender_balance:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
-
     try:
+        # Fetching sender's wallet with locking 
+        sender_wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).with_for_update().first()
+        if not sender_wallet:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sender wallet not found")
+        
+        # Fetching recipient
+        recipient_email=request.recipient_email.strip().lower()
+        recipient=db.query(User).filter(User.email==recipient_email).first()
+        if not recipient:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")
+
+        # Preventing self transfer
+        if recipient.id == current_user.id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot transfer funds to yourself")
+        
+        # Fetching recipient's wallet with locking
+        recipient_wallet=db.query(Wallet).filter(Wallet.user_id==recipient.id).with_for_update().first()
+        if not recipient_wallet:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient wallet not found")
+        
+        # Checking sender balance
+        sender_balance=sender_wallet.balance or 0
+        if request.amount > sender_balance:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
         sender_wallet.balance=sender_balance - request.amount
         recipient_wallet.balance=(recipient_wallet.balance or 0) + request.amount
         debit_transaction = WalletTransaction(
@@ -225,9 +225,10 @@ def transfer_funds(request: TransferRequest, current_user: User = Depends(get_cu
         db.commit()
         db.refresh(sender_wallet)
         db.refresh(debit_transaction)
-
+    except HTTPException:
+        raise
     except Exception:
-        logging.exception("Transfer error")
+        logging.exception(f"Transfer error | user={current_user.id}")
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Transfer failed")
     return WalletTransactionResponse(
