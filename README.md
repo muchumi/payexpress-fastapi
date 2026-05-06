@@ -31,7 +31,7 @@ Language: Python
 
 ASGI Server: Uvicorn
 
-Database: PostgreSQL / MySQL / SQLite
+Database: PostgreSQL / MySQL / SQLite / Oracle DB
 
 ORM: SQLAlchemy
 
