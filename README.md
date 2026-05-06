@@ -15,7 +15,7 @@ Payexpress provides APIs for payment processing, transaction management, user au
 
 🧾 Webhook support for payment events
 
-🗄 Database integration (PostgreSQL / MySQL / SQLite)
+🗄 Database integration (PostgreSQL / MySQL / SQLite/ Oracle DB)
 
 🧪 Unit & integration testing
 
