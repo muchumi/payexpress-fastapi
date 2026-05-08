@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.db.database import Base, engine
+from app.db.database import Base, engine, SessionLocal
+from app.models.user import User
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_database():
@@ -37,4 +38,11 @@ def test_create_user_duplicate_email():
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Email already exists"
+    
+# Test if the password has been hashed in the database
+def test_password_is_hashed():
+    create_user()
+    session=SessionLocal()
+    user = session.query(User).filter(User.email == "test@example.com").first()
+    assert user.password != "strongpassword"
     
