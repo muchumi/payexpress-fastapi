@@ -46,3 +46,15 @@ def test_password_is_hashed():
     user = session.query(User).filter(User.email == "test@example.com").first()
     assert user.password != "strongpassword"
     
+# Test for login/authentication
+def test_login_user():
+    create_user()
+    response=client.post("/auth/login", data={
+        "username": "test@example.com",
+        "password": "strongpassword"
+    })
+    assert response.status_code == 200
+    data=response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+    
