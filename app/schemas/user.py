@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from app.schemas.walletResponse import WalletResponse
 
 # Creating pydantic models to validate request and response data
 
@@ -11,6 +12,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
+    wallet: WalletResponse
 
     class Config:
         # required to return SQLAlchemy models inform of JSON response
