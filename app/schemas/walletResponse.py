@@ -1,10 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # Processes response data for wallet information, such as balance and id.
 class WalletResponse(BaseModel):
     id: int
     balance: float
-
-    class Config:
-        # required to return SQLAlchemy models
-        from_attributes=True
+    # required to return SQLAlchemy models
+    model_config=ConfigDict(from_attributes = True)
+        
