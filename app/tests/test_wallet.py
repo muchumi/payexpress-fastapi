@@ -18,7 +18,16 @@ def create_user(email="test@example.com", password="strongpassword"):
         "email": email,
         "password": password
     })
-    
+
+# Create login user helper function
+def login_user(email="test@example.com", password="strongpassword"):
+    response=client.post("/auth/login", data={
+        "username": email,
+        "password": password
+    })  
+    return response.json()["access_token"] 
+
+
 # Test for automatic wallet creation upon user registration
 def test_wallet_creation_on_user_registration():
     response=create_user()
@@ -28,4 +37,18 @@ def test_wallet_creation_on_user_registration():
     assert "wallet" in data
     assert data["wallet"]["balance"]==0.0
     
-    
+# Test for wallet deposit operations
+def test_deposit_transaction():
+    create_user()
+    token=login_user()
+    response=client.post("/wallets/me/deposit", json={
+        "amount": 1000
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
+        }                   
+    )
+    assert response.status_code==201
+    data=response.json()
+    assert data["balance"]==1000.0
+      
