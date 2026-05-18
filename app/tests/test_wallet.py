@@ -57,10 +57,11 @@ def test_deposit_transaction():
     # Verifying database state after deposit transaction
     db = SessionLocal()
     wallet=db.query(Wallet).first()
-    assert wallet.balance==1000
+    assert wallet is not None
+    assert float(wallet.balance)==1000.0
     transaction=db.query(WalletTransaction).first()
     assert transaction is not None
-    assert transaction.amount==1000
+    assert float(transaction.amount)==1000.0
     assert transaction.transaction_type=="deposit"
     db.close()
       
