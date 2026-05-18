@@ -2,6 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.database import Base, engine, SessionLocal
+from app.models.wallet import Wallet
+from app.models.walletTransaction import WalletTransaction
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_database():
@@ -51,4 +53,14 @@ def test_deposit_transaction():
     assert response.status_code==201
     data=response.json()
     assert data["balance"]==1000.0
+      
+    # Verifying database state after deposit transaction
+    db = SessionLocal()
+    wallet=db.query(Wallet).first()
+    assert wallet.balance==1000
+    transaction=db.query(WalletTransaction).first()
+    assert transaction is not None
+    assert transaction.amount==1000
+    assert transaction.transaction_type=="deposit"
+    db.close()
       
