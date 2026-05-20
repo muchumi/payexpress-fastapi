@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from datetime import datetime, date
 from fastapi import FastAPI, HTTPException, status, Depends, Query
 from fastapi.security import OAuth2PasswordRequestForm
@@ -129,23 +130,24 @@ def withdraw(request: AmountRequest, current_user: User = Depends(get_current_us
     wallet = db.query(Wallet).filter(Wallet.user_id==current_user.id).first()
     if not wallet:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="wallet resource not found")
-    current_balance = wallet.balance or 0
+    current_balance = wallet.balance or Decimal("0")
+    amount=Decimal(str(request.amount))
 
-    if request.amount <= 0:
+    if amount <= 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Withdrawal amount must be greater than zero")
     
     # preventing overdraft
-    if request.amount > current_balance:
+    if amount > current_balance:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds")
     
     try:
         # deducting balance
-        wallet.balance = current_balance - request.amount
+        wallet.balance = current_balance - amount
         # recording the transaction
         transaction = WalletTransaction(
             user_id=current_user.id,
             wallet_id=wallet.id,
-            amount=request.amount,
+            amount=amount,
             currency=request.currency,
             description=request.description,
             transaction_type="withdrawal",
@@ -164,10 +166,10 @@ def withdraw(request: AmountRequest, current_user: User = Depends(get_current_us
         )
     return WalletTransactionResponse(
         message="Withdrawal successful",
-        amount=request.amount,
+        amount=float(amount),
         currency=request.currency,
         description=request.description,
-        balance=wallet.balance,
+        balance=float(wallet.balance),
         transaction_type=transaction.transaction_type,
         timestamp=transaction.timestamp
     )
