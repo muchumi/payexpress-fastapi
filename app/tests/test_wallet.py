@@ -64,4 +64,41 @@ def test_deposit_transaction():
     assert float(transaction.amount)==1000.0
     assert transaction.transaction_type=="deposit"
     db.close()
-      
+    
+# Test for wallet withdrawal operations
+def test_withdrawal_transaction():
+    create_user()
+    token=login_user()
+    # First deposit to ensure sufficient balance for withdrawal
+    client.post("/wallets/me/deposit", 
+                json={
+                    "amount": 1000
+                },
+                headers={
+                    "Authorization": f"Bearer {token}"
+                }
+            )
+    # Withdraw money
+    response=client.post("/wallets/me/withdraw", 
+                json={
+                    "amount": 350
+                },
+                headers={
+                    "Authorization": f"Bearer {token}"
+                }
+            )
+    assert response.status_code==201
+    data=response.json()
+    assert data["balance"]==650.0
+    #Verifying database state after withdrawal transaction
+    db=SessionLocal()
+    wallet=db.query(Wallet).first()
+    assert wallet is not None
+    assert float(wallet.balance)==650.0
+    transactions=db.query(WalletTransaction).all()
+    assert len(transactions)==2
+    withdraw_transaction=transactions[1]
+    assert float(withdraw_transaction.amount)==350.0
+    assert withdraw_transaction.transaction_type=="withdrawal"
+    db.close()
+    
