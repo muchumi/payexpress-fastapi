@@ -102,3 +102,45 @@ def test_withdrawal_transaction():
     assert withdraw_transaction.transaction_type=="withdrawal"
     db.close()
     
+# Test for withdrawal wallet operation with insufficient funds
+def test_withdrawal_with_insufficient_funds():
+    create_user()
+    token=login_user()
+    
+    # Small amount deposit
+    client.post("/wallets/me/deposit", 
+        json={
+            "amount": 100
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
+    
+    # Attempting overdraft withdrawal
+    response=client.post("/wallets/me/withdraw", 
+        json={
+            "amount": 200
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
+    assert response.status_code==400
+    data=response.json()
+    assert data["detail"] == "Insufficient funds"
+    
+    # Verifying wallet balance remains unchanged
+    db=SessionLocal()
+    wallet=db.query(Wallet).first()
+    assert wallet is not None
+    assert float(wallet.balance)==100.0
+    
+    # Verifying no withdrawal transaction was created
+    transactions=db.query(WalletTransaction).all()
+    assert len(transactions)==1
+    assert transactions[0].transaction_type=="deposit"
+    db.close()
+    
+    
+    
