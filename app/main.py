@@ -274,6 +274,7 @@ def transaction_history(
         total= total,
         limit= limit,
         offset= offset,
+        page= (offset // limit) + 1,
         data= transactions
     )
 

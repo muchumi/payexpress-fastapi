@@ -5,6 +5,7 @@ from .transactionHistoryResponse import TransactionHistoryResponse
 class PaginatedTransactionResponse(BaseModel):
     total: int
     limit: int
+    page: int
     offset: int
     data: List[TransactionHistoryResponse]
     
