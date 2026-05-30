@@ -63,3 +63,24 @@ def test_get_transactions_history():
     assert data["data"][0]["transaction_type"]=="withdrawal"
     assert data["data"][1]["transaction_type"]=="deposit"
     
+# TDD test for transaction history pagination
+def test_get_transactions_history_pagination():
+    # Creating user and logging in
+    create_user()
+    token=login_user()
+    for i in range(15):
+        client.post("/wallets/me/deposit",
+            json={
+                "amount": 1000
+            },
+            headers={
+                "Authorization": f"Bearer {token}"
+            }
+        )
+    response=client.get("/wallets/me/transactions?page=1&limit=10", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code==200
+    data=response.json()
+    assert len(data["data"])==10
+    assert data["page"]==1
+    assert data["limit"]==10
+    assert data["total"]==15
