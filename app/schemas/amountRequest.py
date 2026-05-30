@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
+from decimal import Decimal
 
 # Defining allowed currencies for validation
 ALLOWED_CURRENCIES = ["KES", "USD", "EUR"]
 
 class AmountRequest(BaseModel):
-    amount: float = Field(..., gt=0, description="The amount to be processed must be greater than zero")
+    amount: Decimal = Field(..., gt=0, description="The amount to be processed must be greater than zero")
     currency: str = Field(default="KES", description="Currency code (e.g. KES, USD, EUR)") 
     description: Optional[str] = None
 
