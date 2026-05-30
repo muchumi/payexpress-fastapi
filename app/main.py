@@ -166,10 +166,10 @@ def withdraw(request: AmountRequest, current_user: User = Depends(get_current_us
         )
     return WalletTransactionResponse(
         message="Withdrawal successful",
-        amount=float(amount),
+        amount=amount,
         currency=request.currency,
         description=request.description,
-        balance=float(wallet.balance),
+        balance=wallet.balance,
         transaction_type=transaction.transaction_type,
         timestamp=transaction.timestamp
     )

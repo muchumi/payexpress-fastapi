@@ -1,9 +1,10 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Optional
+from decimal import Decimal
 
 class TransferRequest(BaseModel):
     recipient_email: str = Field(..., description="Email of the user to whom the amount will be transferred")
-    amount: float = Field(..., gt=0, description="Amount to transfer must be greater than zero")
+    amount: Decimal = Field(..., gt=0, description="Amount to transfer must be greater than zero")
     currency: Literal["KES", "USD", "EUR"] = Field(default="KES", description="Currency codes allowed: KES, USD, EUR")
     description: Optional[str]=None
 
