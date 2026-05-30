@@ -3,6 +3,7 @@ from decimal import Decimal
 from datetime import datetime, date
 from fastapi import FastAPI, HTTPException, status, Depends, Query
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.tokenResponse import TokenResponse
@@ -269,7 +270,7 @@ def transaction_history(
         
     # Getting total count after filtering
     total=query.count()
-    transactions=query.order_by(WalletTransaction.timestamp.desc()).offset(offset).limit(limit).all()
+    transactions = (query.order_by(WalletTransaction.timestamp.desc(),WalletTransaction.id.desc()).offset(offset).limit(limit).all())
     return PaginatedTransactionResponse(
         total= total,
         limit= limit,

@@ -96,7 +96,7 @@ def test_withdrawal_transaction():
 
     deposit_tx = next(t for t in transactions if t.transaction_type == "deposit")
     withdraw_tx = next(t for t in transactions if t.transaction_type == "withdrawal")
-
+    
     assert wallet.balance == Decimal("650.00")
     assert deposit_tx.amount == Decimal("1000.00")
     assert withdraw_tx.amount == Decimal("350.00")

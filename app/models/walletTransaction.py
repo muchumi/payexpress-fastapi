@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.database import Base
 
 class WalletTransaction(Base):
@@ -9,11 +9,11 @@ class WalletTransaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=False)
-    amount = Column(Float, nullable=False)
+    amount = Column(Numeric(18,2), nullable=False)
     currency = Column(String, default="KES")
     description = Column(String, nullable=True)
     transaction_type = Column(String, nullable=False)  # "deposit", "withdraw", "transfer"
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     status=Column(String, default="completed")
 
     # relationships to user and wallet
