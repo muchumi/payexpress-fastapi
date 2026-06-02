@@ -116,3 +116,24 @@ def test_filter_transactions_by_type():
     assert data["total"]==1
     assert len(data["data"])==1
     assert data["data"][0]["transaction_type"]=="deposit"
+    
+# TDD test for a user to view his transactions only
+def test_user_can_view_own_transactions_only():
+    # Create userA and login
+    create_user("usera@example.com", "password123")
+    token_a=login_user("usera@example.com", "password123")
+    
+    client.post("/wallets/me/deposit", json={"amount": 1000}, headers={"Authorization": f"Bearer {token_a}"})
+    
+    # Create userB 
+    create_user("userb@example.com", "password123")
+    token_b=login_user("userb@example.com", "password123")
+    
+    client.post("/wallets/me/deposit", json={"amount": 500}, headers={"Authorization": f"Bearer {token_b}"})
+    
+    # Fetching user A transactions
+    response=client.get("/wallets/me/transactions", headers={"Authorization": f"Bearer {token_a}"})
+    data=response.json()
+    assert response.status_code==200
+    assert data["total"]==1
+    assert data["data"][0]["amount"]=="1000.00"
