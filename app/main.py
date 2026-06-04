@@ -12,6 +12,7 @@ from app.schemas.amountRequest import AmountRequest
 from app.schemas.walletTransactionResponse import WalletTransactionResponse
 from app.schemas.transferRequest import TransferRequest
 from app.schemas.paginatedTransactionResponse import PaginatedTransactionResponse
+from app.schemas.transactionType import TransactionType
 from app.db.database import engine, Base, get_db
 from app.models.user import User
 from app.models.wallet import Wallet
@@ -249,7 +250,7 @@ def transfer_funds(request: TransferRequest, current_user: User = Depends(get_cu
 def transaction_history(
     limit: int = Query(10, le=100), 
     offset: int = Query(0, ge=0), 
-    transaction_type : str | None = Query(None, description="Filter by transaction type"),
+    transaction_type : TransactionType | None = Query(None, description="Filter transactions by type"),
     start_date: date | None = Query(None, description="Start date for filtering transactions data(YYYY-MM-DD)"),
     end_date : date | None = Query(None, description="End date for filtering transactions data(YYYY-MM-DD)"), 
     current_user: User = Depends(get_current_user), 
@@ -258,7 +259,7 @@ def transaction_history(
     query = db.query(WalletTransaction).filter(WalletTransaction.user_id == current_user.id)
     # Applying transaction_type filter
     if transaction_type:
-        query = query.filter(WalletTransaction.transaction_type == transaction_type)
+        query = query.filter(WalletTransaction.transaction_type == transaction_type.value)
 
     # Applying start_date filter
     if start_date:
