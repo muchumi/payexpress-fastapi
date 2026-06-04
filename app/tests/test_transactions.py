@@ -137,3 +137,19 @@ def test_user_can_view_own_transactions_only():
     assert response.status_code==200
     assert data["total"]==1
     assert data["data"][0]["amount"]=="1000.00"
+    
+# TDD test for empty transaction history
+def test_get_empty_transaction_history():
+    create_user()
+    token = login_user()
+
+    response = client.get(
+        "/wallets/me/transactions",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["total"] == 0
+    assert data["data"] == []
