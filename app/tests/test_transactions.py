@@ -153,3 +153,15 @@ def test_get_empty_transaction_history():
     data = response.json()
     assert data["total"] == 0
     assert data["data"] == []
+    
+# TDD test for invalid transaction type filter
+def test_filter_transactions_invalid_type():
+    create_user()
+    token = login_user()
+
+    response = client.get(
+        "/wallets/me/transactions?transaction_type=invalid",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 422
