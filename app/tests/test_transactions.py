@@ -165,3 +165,26 @@ def test_filter_transactions_invalid_type():
     )
 
     assert response.status_code == 422
+    
+    
+# TDD test for wallet to wallet transfer transactions
+def test_wallet_transfer_successful():
+    # Creating sender
+    create_user("sender@example.com", "password123")
+    sender_token=login_user("sender@example.com", "password123")
+    
+    # Funding sender wallet
+    client.post("/wallets/me/deposit", json={"amount": 1000}, headers={"Authorization": f"Bearer {sender_token}"})
+    
+    # Creating recipient
+    create_user("recipient@example.com", "password123")
+    
+    response=client.post("/wallets/me/transfer", 
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 300
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    assert response.status_code==201
+    
