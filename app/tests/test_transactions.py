@@ -188,3 +188,49 @@ def test_wallet_transfer_successful():
     )
     assert response.status_code==201
     
+# TDD test for wallet transfer to update both sender and recipient wallet balances   
+def test_wallet_transfer_updates_both_wallet_balances():
+    # Create sender
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    # Fund sender wallet
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 1000},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    # Create recipient
+    create_user("recipient@example.com", "password123")
+    recipient_token = login_user("recipient@example.com", "password123")
+
+    # Transfer
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 300
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert response.status_code == 201
+
+    # Check sender balance
+    sender_wallet = client.get(
+        "/wallets/me",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert sender_wallet.status_code == 200
+    assert sender_wallet.json()["balance"] == "700.00"
+
+    # Check recipient balance
+    recipient_wallet = client.get(
+        "/wallets/me",
+        headers={"Authorization": f"Bearer {recipient_token}"}
+    )
+
+    assert recipient_wallet.status_code == 200
+    assert recipient_wallet.json()["balance"] == "300.00"
