@@ -234,3 +234,31 @@ def test_wallet_transfer_updates_both_wallet_balances():
 
     assert recipient_wallet.status_code == 200
     assert recipient_wallet.json()["balance"] == "300.00"
+    
+# TDD test for transfer fails when sender has insufficient funds
+def test_wallet_transfer_fails_with_insufficient_balance():
+    # Create sender
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    # Deposit only 100
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 100},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    # Create recipient
+    create_user("recipient@example.com", "password123")
+
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 300
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Insufficient balance"
