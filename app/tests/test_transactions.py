@@ -262,3 +262,26 @@ def test_wallet_transfer_fails_with_insufficient_balance():
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Insufficient balance"
+    
+# TDD test for transfer fails when recipient does not exist/email not found    
+def test_wallet_transfer_fails_when_recipient_not_found():
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 1000},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "unknown@example.com",
+            "amount": 300
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Recipient not found"
