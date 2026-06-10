@@ -285,3 +285,13 @@ def test_wallet_transfer_fails_when_recipient_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Recipient not found"
+    
+# TDD test for transfer fails when sender tries to transfer to self
+def test_wallet_transfer_to_self_fails():
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+    client.post("/wallets/me/deposit", json={"amount": 1000}, headers={"Authorization": f"Bearer {sender_token}"})
+    response=client.post("/wallets/me/transfer", json={"recipient_email": "sender@example.com", "amount": 300}, headers={"Authorization": f"Bearer {sender_token}"})
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Cannot transfer funds to yourself"
+    
