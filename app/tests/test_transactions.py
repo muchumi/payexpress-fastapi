@@ -295,3 +295,29 @@ def test_wallet_transfer_to_self_fails():
     assert response.status_code == 400
     assert response.json()["detail"] == "Cannot transfer funds to yourself"
     
+# TDD test for recording wallet transfer transactions
+def test_recording_wallet_transfer_transactions():
+    # create user
+    create_user("sender@example.com", "password123")
+    sender_token=login_user("sender@example.com", "password123")
+    client.post("/wallets/me/deposit", json={"amount": 1000}, headers={"Authorization": f"Bearer {sender_token}"})
+    
+    # create recipient
+    create_user("recipient@example.com", "password123")
+    recipient_token=login_user("recipient@example.com", "password123")
+    
+    # transfer
+    client.post("/wallets/me/transfer", json={"recipient_email": "recipient@example.com", "amount": 300}, headers={"Authorization": f"Bearer {sender_token}"})
+    
+    # sender transaction history
+    sender_history=client.get("/wallets/me/transactions", headers={"Authorization": f"Bearer {sender_token}"})
+    
+    sender_data=sender_history.json()
+    assert sender_data["total"]==2
+    assert sender_data["data"][0]["transaction_type"]=="transfer_debit"
+    
+    # recipient transaction history
+    recipient_history=client.get("/wallets/me/transactions", headers={"Authorization": f"Bearer {recipient_token}"})
+    recipient_data=recipient_history.json()
+    assert recipient_data["total"]==1
+    assert recipient_data["data"][0]["transaction_type"]=="transfer_credit"
