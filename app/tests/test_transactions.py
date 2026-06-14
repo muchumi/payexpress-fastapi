@@ -363,3 +363,15 @@ def test_wallet_transfer_negative_amount_fails():
     )
 
     assert response.status_code == 422
+    
+# TDD test for transfer requires authentication  
+def test_transfer_requires_authentication():
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 100
+        }
+    )
+
+    assert response.status_code == 401  
