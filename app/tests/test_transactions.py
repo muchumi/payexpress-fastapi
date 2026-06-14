@@ -345,3 +345,21 @@ def test_wallet_transfer_amount_must_be_positive():
     )
 
     assert response.status_code == 422
+    
+# TDD test for transfer amount must be positive (negative amount should fail)
+def test_wallet_transfer_negative_amount_fails():
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    create_user("recipient@example.com", "password123")
+
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": -100
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert response.status_code == 422
