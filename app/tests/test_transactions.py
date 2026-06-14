@@ -321,3 +321,27 @@ def test_recording_wallet_transfer_transactions():
     recipient_data=recipient_history.json()
     assert recipient_data["total"]==1
     assert recipient_data["data"][0]["transaction_type"]=="transfer_credit"
+ 
+# TDD test for transfer amount must be positive   
+def test_wallet_transfer_amount_must_be_positive():
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 1000},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    create_user("recipient@example.com", "password123")
+
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 0
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert response.status_code == 422
