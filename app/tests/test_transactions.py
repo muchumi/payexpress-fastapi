@@ -375,3 +375,51 @@ def test_transfer_requires_authentication():
     )
 
     assert response.status_code == 401  
+    
+# TDD test for transfer transaction details
+def test_transfer_transactions_contain_correct_details():
+    # Create sender
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 1000},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    # Create recipient
+    create_user("recipient@example.com", "password123")
+    recipient_token = login_user("recipient@example.com", "password123")
+
+    # Transfer
+    client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 300
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    # Sender history
+    sender_history = client.get(
+        "/wallets/me/transactions",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    sender_txn = sender_history.json()["data"][0]
+
+    assert sender_txn["transaction_type"] == "transfer_debit"
+    assert sender_txn["amount"] == "300.00"
+
+    # Recipient history
+    recipient_history = client.get(
+        "/wallets/me/transactions",
+        headers={"Authorization": f"Bearer {recipient_token}"}
+    )
+
+    recipient_txn = recipient_history.json()["data"][0]
+
+    assert recipient_txn["transaction_type"] == "transfer_credit"
+    assert recipient_txn["amount"] == "300.00"
