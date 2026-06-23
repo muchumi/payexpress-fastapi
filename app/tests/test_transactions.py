@@ -423,3 +423,50 @@ def test_transfer_transactions_contain_correct_details():
 
     assert recipient_txn["transaction_type"] == "transfer_credit"
     assert recipient_txn["amount"] == "300.00"
+    
+# TDD test for transferring entire balance  
+def test_wallet_transfer_entire_balance():
+    # Create sender
+    create_user("sender@example.com", "password123")
+    sender_token = login_user("sender@example.com", "password123")
+
+    # Fund sender wallet
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 1000},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    # Create recipient
+    create_user("recipient@example.com", "password123")
+    recipient_token = login_user("recipient@example.com", "password123")
+
+    # Transfer entire balance
+    response = client.post(
+        "/wallets/me/transfer",
+        json={
+            "recipient_email": "recipient@example.com",
+            "amount": 1000
+        },
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert response.status_code == 201
+
+    # Verify sender balance is zero
+    sender_wallet = client.get(
+        "/wallets/me",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+
+    assert sender_wallet.status_code == 200
+    assert sender_wallet.json()["balance"] == "0.00"
+
+    # Verify recipient received full amount
+    recipient_wallet = client.get(
+        "/wallets/me",
+        headers={"Authorization": f"Bearer {recipient_token}"}
+    )
+
+    assert recipient_wallet.status_code == 200
+    assert recipient_wallet.json()["balance"] == "1000.00"
