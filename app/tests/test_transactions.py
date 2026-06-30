@@ -470,3 +470,4 @@ def test_wallet_transfer_entire_balance():
 
     assert recipient_wallet.status_code == 200
     assert recipient_wallet.json()["balance"] == "1000.00"
+    

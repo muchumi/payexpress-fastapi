@@ -1,4 +1,4 @@
-import logging
+import logging, uuid
 from decimal import Decimal
 from datetime import datetime, date
 from fastapi import FastAPI, HTTPException, status, Depends, Query
