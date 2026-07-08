@@ -471,3 +471,26 @@ def test_wallet_transfer_entire_balance():
     assert recipient_wallet.status_code == 200
     assert recipient_wallet.json()["balance"] == "1000.00"
     
+# TDD test for wallet statememt
+def test_generate_wallet_statement():
+    create_user()
+    token = login_user()
+
+    client.post(
+        "/wallets/me/deposit",
+        json={"amount": 1000},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    response = client.get(
+        "/wallets/me/statement",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "opening_balance" in data
+    assert "closing_balance" in data
+    assert "transactions" in data
