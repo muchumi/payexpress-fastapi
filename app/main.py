@@ -280,3 +280,42 @@ def transaction_history(
         data= transactions
     )
 
+
+# Route to get wallet statement
+@app.get("/wallets/me/statement")
+def generate_wallet_statement(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # Find the user's wallet
+    wallet = (
+        db.query(Wallet)
+        .filter(Wallet.user_id == current_user.id)
+        .first()
+    )
+
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    # Retrieve transactions
+    transactions = (
+        db.query(WalletTransaction)
+        .filter(WalletTransaction.wallet_id == wallet.id)
+        .order_by(WalletTransaction.created_at.desc())
+        .all()
+    )
+
+    return {
+        "wallet_id": wallet.id,
+        "balance": wallet.balance,
+        "transactions": [
+            {
+                "id": tx.id,
+                "type": tx.transaction_type,
+                "amount": tx.amount,
+                "description": tx.description,
+                "created_at": tx.created_at,
+            }
+            for tx in transactions
+        ],
+    }
