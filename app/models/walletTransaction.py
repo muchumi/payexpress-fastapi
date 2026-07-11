@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.db.database import Base
@@ -15,6 +16,7 @@ class WalletTransaction(Base):
     transaction_type = Column(String, nullable=False)  # "deposit", "withdraw", "transfer"
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     status=Column(String, default="completed")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships to user and wallet
     user = relationship("User", back_populates="transactions")
